@@ -4151,6 +4151,10 @@ SOURCE=.\src\misc\util\utilNam.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\misc\util\utilPth.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\misc\util\utilSignal.c
 # End Source File
 # Begin Source File
@@ -5368,14 +5372,6 @@ SOURCE=.\src\aig\miniaig\minilut.h
 # Begin Source File
 
 SOURCE=.\src\aig\miniaig\ndr.h
-# End Source File
-# End Group
-# Begin Group "uap"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\src\aig\uap\uap.h
 # End Source File
 # End Group
 # End Group
