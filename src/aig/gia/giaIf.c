@@ -2208,7 +2208,7 @@ void Gia_ManMappingVerify( Gia_Man_t * p )
             continue;
         if ( !Gia_ObjIsLut(p, Gia_ObjId(p, pFanin)) )
         {
-            Abc_Print( -1, "Gia_ManMappingVerify: CO driver %d does not have mapping.\n", Gia_ObjId(p, pFanin) );
+            Abc_Print( -1, "Gia_ManMappingVerify: Buffer driver %d does not have mapping.\n", Gia_ObjId(p, pFanin) );
             Result = 0;
             continue;
         }
@@ -2310,6 +2310,8 @@ void Gia_ManTransferPacking( Gia_Man_t * p, Gia_Man_t * pGia )
 }
 void Gia_ManTransferTiming( Gia_Man_t * p, Gia_Man_t * pGia )
 {
+    if ( p == pGia )
+        return;
     if ( pGia->vCiArrs || pGia->vCoReqs || pGia->vCoArrs || pGia->vCoAttrs )
     {
         p->vCiArrs     = pGia->vCiArrs;     pGia->vCiArrs    = NULL;
@@ -2337,7 +2339,7 @@ void Gia_ManTransferTiming( Gia_Man_t * p, Gia_Man_t * pGia )
         p->vConfigs     = pGia->vConfigs;     pGia->vConfigs     = NULL;
         p->pCellStr     = pGia->pCellStr;     pGia->pCellStr     = NULL;
     }
-    if ( pGia->pManTime == NULL || p == pGia )
+    if ( pGia->pManTime == NULL )
         return;
     p->pManTime    = pGia->pManTime;    pGia->pManTime    = NULL;
     p->pAigExtra   = pGia->pAigExtra;   pGia->pAigExtra   = NULL;

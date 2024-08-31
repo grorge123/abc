@@ -1195,6 +1195,10 @@ SOURCE=.\src\bdd\extrab\extraBdd.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\bdd\extrab\extraLutCas.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\bdd\extrab\extraBddAuto.c
 # End Source File
 # Begin Source File
@@ -5124,6 +5128,10 @@ SOURCE=.\src\aig\gia\giaMinLut.c
 # Begin Source File
 
 SOURCE=.\src\aig\gia\giaMinLut2.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\aig\gia\giaMulFind.c
 # End Source File
 # Begin Source File
 

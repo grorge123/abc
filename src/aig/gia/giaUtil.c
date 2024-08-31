@@ -151,6 +151,42 @@ char * Gia_FileNameGenericAppend( char * pBase, char * pSuffix )
   SeeAlso     []
 
 ***********************************************************************/
+Vec_Ptr_t * Gia_GetFakeNames( int nNames, int fCaps )
+{
+    Vec_Ptr_t * vNames;
+    char Buffer[5];
+    int i;
+
+    vNames = Vec_PtrAlloc( nNames );
+    for ( i = 0; i < nNames; i++ )
+    {
+        if ( nNames < 26 )
+        {
+            Buffer[0] = (fCaps ? 'A' : 'a') + i;
+            Buffer[1] = 0;
+        }
+        else
+        {
+            Buffer[0] = (fCaps ? 'A' : 'a') + i%26;
+            Buffer[1] = '0' + i/26;
+            Buffer[2] = 0;
+        }
+        Vec_PtrPush( vNames, Extra_UtilStrsav(Buffer) );
+    }
+    return vNames;
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
 void Gia_ManIncrementTravId( Gia_Man_t * p )                     
 { 
     if ( p->pTravIds == NULL )
@@ -758,6 +794,23 @@ void Gia_ManCreateRefs( Gia_Man_t * p )
         }
         else if ( Gia_ObjIsCo(pObj) )
             Gia_ObjRefFanin0Inc( p, pObj );
+    }
+}
+void Gia_ManCreateLitRefs( Gia_Man_t * p )  
+{
+    Gia_Obj_t * pObj;
+    int i;
+    assert( p->pRefs == NULL );
+    p->pRefs = ABC_CALLOC( int, 2*Gia_ManObjNum(p) );
+    Gia_ManForEachObj( p, pObj, i )
+    {
+        if ( Gia_ObjIsAnd(pObj) )
+        {
+            p->pRefs[Gia_ObjFaninLit0(pObj, i)]++;
+            p->pRefs[Gia_ObjFaninLit1(pObj, i)]++;
+        }
+        else if ( Gia_ObjIsCo(pObj) )
+            p->pRefs[Gia_ObjFaninLit0(pObj, i)]++;
     }
 }
 
@@ -3277,73 +3330,6 @@ void Gia_ManTestProblem()
             }            
         }
     }
-}
-
-/**Function*************************************************************
-
-  Synopsis    []
-
-  Description []
-
-  SideEffects []
-
-  SeeAlso     []
-
-***********************************************************************/
-Vec_Int_t * Gia_GenDecoder( Gia_Man_t * p, int * pLits, int nLits )
-{
-    if ( nLits == 1 )
-    {
-        Vec_Int_t * vRes = Vec_IntAlloc( 2 );
-        Vec_IntPush( vRes, Abc_LitNot(pLits[0]) );
-        Vec_IntPush( vRes, pLits[0] );
-        return vRes;
-    }
-    assert( nLits > 1 );
-    int nPart1 = nLits / 2;
-    int nPart2 = nLits - nPart1;
-    Vec_Int_t * vRes1 = Gia_GenDecoder( p, pLits, nPart1 );
-    Vec_Int_t * vRes2 = Gia_GenDecoder( p, pLits+nPart1, nPart2 );
-    Vec_Int_t * vRes = Vec_IntAlloc( Vec_IntSize(vRes1) * Vec_IntSize(vRes2) );
-    int i, k, Lit1, Lit2;
-    Vec_IntForEachEntry( vRes2, Lit2, k )
-    Vec_IntForEachEntry( vRes1, Lit1, i )
-        Vec_IntPush( vRes, Gia_ManHashAnd(p, Lit1, Lit2) );
-    Vec_IntFree( vRes1 );
-    Vec_IntFree( vRes2 );
-    return vRes;   
-}
-Gia_Man_t * Gia_ManGenMux( int nIns, char * pNums )
-{
-    Vec_Int_t * vIns  = Vec_IntAlloc( nIns );
-    Vec_Int_t * vData = Vec_IntAlloc( 1 << nIns );    
-    Gia_Man_t * p = Gia_ManStart( 4*(1 << nIns) + nIns ), * pTemp; 
-    int i, iStart = 0, nSize = 1 << nIns;
-    p->pName = Abc_UtilStrsav( "mux" );
-    for ( i = 0; i < nIns; i++ )
-        Vec_IntPush( vIns, Gia_ManAppendCi(p) );
-    for ( i = 0; i < nSize; i++ )
-        Vec_IntPush( vData, Gia_ManAppendCi(p) );
-    Gia_ManHashAlloc( p );
-    for ( i = (int)strlen(pNums)-1; i >= 0; i-- )
-    {
-        int k, b, nBits = (int)(pNums[i] - '0');
-        Vec_Int_t * vDec = Gia_GenDecoder( p, Vec_IntEntryP(vIns, iStart), nBits );
-        for ( k = 0; k < nSize; k++ )
-            Vec_IntWriteEntry( vData, k, Gia_ManHashAnd(p, Vec_IntEntry(vData, k), Vec_IntEntry(vDec, k%Vec_IntSize(vDec))) );
-        for ( b = 0; b < nBits; b++, nSize /= 2 )
-            for ( k = 0; k < nSize/2; k++ )
-                Vec_IntWriteEntry( vData, k, Gia_ManHashOr(p, Vec_IntEntry(vData, 2*k), Vec_IntEntry(vData, 2*k+1)) );
-        Vec_IntFree( vDec );
-        iStart += nBits;
-    }
-    assert( nSize == 1 );
-    Gia_ManAppendCo( p, Vec_IntEntry(vData, 0) );
-    Vec_IntFree( vIns );
-    Vec_IntFree( vData );    
-    p = Gia_ManCleanup( pTemp = p );
-    Gia_ManStop( pTemp );
-    return p;
 }
 
 /**Function*************************************************************
