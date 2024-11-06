@@ -1320,16 +1320,24 @@ Vec_Int_t * Gia_ManFindStopFlops( Gia_Man_t * p, int nFlopIncFreq, int fVerbose 
         if ( Spot >= 0 && Vec_IntEntry(vAvail, i) == 0 )
             Vec_IntPush( vHeads, i );
     Vec_IntForEachEntry( vHeads, Spot, i ) {
-        for ( k = 0, Temp = Spot; Vec_IntEntry(vNexts, Temp) >= 0; k++, Temp = Vec_IntEntry(vNexts, Temp) )
-            ;
+        Gia_ManIncrementTravId( p );
+        for ( k = 0, Temp = Spot; Vec_IntEntry(vNexts, Temp) >= 0; k++, Temp = Vec_IntEntry(vNexts, Temp) ) {
+            if ( Gia_ObjUpdateTravIdCurrentId(p, Temp) )
+                break;
+            Vec_IntWriteEntry( vAvail, Temp, 1 );
+        }
         if ( k > 100 )
         {
             nItems++;
             if ( vRes == NULL ) 
                 vRes = Vec_IntAlloc( 100 );
-            for ( k = 0, Temp = Spot; Vec_IntEntry(vNexts, Temp) >= 0; k++, Temp = Vec_IntEntry(vNexts, Temp) )
+            Gia_ManIncrementTravId( p );
+            for ( k = 0, Temp = Spot; Vec_IntEntry(vNexts, Temp) >= 0; k++, Temp = Vec_IntEntry(vNexts, Temp) ) {
+                if ( Gia_ObjUpdateTravIdCurrentId(p, Temp) )
+                    break;            
                 if ( k % nFlopIncFreq == 0 )
                     Vec_IntPush( vRes, Temp );
+            }
         }
         while ( Vec_IntEntry(vNexts, Spot) >= 0 )
         {
